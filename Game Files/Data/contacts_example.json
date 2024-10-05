@@ -1,0 +1,16 @@
+{
+	"contacts": [
+		{
+			"name": "Putri",
+			"chapters": []
+		},	
+		{
+			"name": "Boss Wu",
+			"chapters": [1, 2]
+		},
+		{
+			"name": "Winston Tan",
+			"chapters": [2]
+		}
+	]
+}

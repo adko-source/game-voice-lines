@@ -1,0 +1,34 @@
+{
+	"voiceLines": [
+		{
+			"line_categories": ["Mission_Success"],
+			"mission_ids": [],
+			"mission_types": [],
+			"chapters": [],
+			"lines": ["You won!", "Kick ass Serican!", "I knew you could do it!"],
+			"valid_speakers": [],
+			"required_contacts": [],
+			"required_enemies": [],
+			"required_missions_completed": [],
+			"minimum_serican_rank": 0,
+			"maximum_serican_rank": 9999,
+			"minimum_disruption_rank": 0,
+			"maximum_disruption_rank": 9999
+		},
+		{
+			"line_categories": ["Mission_Failure"],
+			"mission_ids": [],
+			"mission_types": [],
+			"chapters": [],
+			"lines": ["You lost!", "Tough luck", "Not so groovy..."],
+			"valid_speakers": [],
+			"required_contacts": [],
+			"required_enemies": [],
+			"required_missions_completed": [],
+			"minimum_serican_rank": 0,
+			"maximum_serican_rank": 9999,
+			"minimum_disruption_rank": 0,
+			"maximum_disruption_rank": 9999
+		}
+	]
+}
