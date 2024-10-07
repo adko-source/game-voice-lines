@@ -6,7 +6,7 @@
 			"mission_types": [],
 			"chapters": [],
 			"lines": ["You won!", "Kick ass Serican!", "I knew you could do it!"],
-			"valid_speakers": [],
+			"valid_speakers": ["Putri"],
 			"required_contacts": [],
 			"required_enemies": [],
 			"required_missions_completed": [],
