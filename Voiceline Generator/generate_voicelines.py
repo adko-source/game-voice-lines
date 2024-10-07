@@ -42,7 +42,7 @@ def call_text_to_speech_api(voice_id, text, file_name, folder_name):
 
     payload = {
         "text": text,
-        "model_id": "eleven_monolingual_v1",
+        "model_id": "eleven_multilingual_v2",
         "voice_settings": {
         "stability": 0.5,
         "similarity_boost": 0.8,
@@ -69,11 +69,11 @@ def call_text_to_speech_api(voice_id, text, file_name, folder_name):
 
 
 # Update voice_lines.json with the generated assets details
-def update_voice_lines_file(generated_file_name, voice_actor, line, line_index): 
+def update_voice_lines_file(generated_file_name, voice_actor, line, voice_line_index): 
     with open(VOICE_LINES_FILE_PATH, 'r') as file:
         data = json.load(file)
 
-        voice_line_object = data['voiceLines'][line_index]
+        voice_line_object = data['voiceLines'][voice_line_index]
       
         # Add new properties to the voice_line_object
         # to refernce the generated assets
@@ -92,28 +92,32 @@ def update_voice_lines_file(generated_file_name, voice_actor, line, line_index):
         with open(VOICE_LINES_FILE_PATH, 'w') as updated_file:
             json.dump(data, updated_file, indent=4)
 
-def process_voice_line_file(file_data, file_name, file_path, line_index):
-    current_voice_line = str(line_index + 1)
+def process_voice_line(voice_line, voice_line_index):
+    current_voice_line = str(voice_line_index + 1)
     print("Processing voice line " + current_voice_line)
     
-    lines = file_data.get('lines', [])
-    valid_speakers = file_data.get('valid_speakers', [])
-
+    lines = voice_line.get('lines', [])
+    valid_speakers = voice_line.get('valid_speakers', [])
+    
     if (len(valid_speakers) == 0):
-        use_random_voice_id = True
-    else:
-        use_random_voice_id = False
-
+        print("Voice line has no valid speakers")
+        return
+         
     if len(lines) == 0:
-        print("No lines found in file")
-    else:
-        for index, line in enumerate(lines):
-            voice_id = get_voice_id_from_name("test")
-            text = line
-            # TODO: Update file and folder naming
-            audio_file_name = f"{index}_{file_name}.mp3"
-            folder_name = f"{"New"}"
+        print("No lines found")
+        return
 
+    for speaker in valid_speakers:
+        voice_id = get_voice_id_from_name(speaker)
+        
+        for line_index, line in enumerate(lines):
+            print(f"Processing voice line {line_index + 1} for {speaker}: {line}")
+            current_voice_line = str(voice_line_index + 1)
+            text = line
+            audio_file_name = f"{line_index}_{voice_id}.mp3"
+            
+            folder_name = f"{"New"}"
+            
             call_text_to_speech_api(
                 voice_id=voice_id,
                 text=text,
@@ -124,7 +128,7 @@ def process_voice_line_file(file_data, file_name, file_path, line_index):
                 generated_file_name=audio_file_name,
                 voice_actor=voice_id,
                 line=line,
-                line_index=line_index
+                voice_line_index=voice_line_index
             )
 
     print("Finished processing voice line " + current_voice_line)
@@ -144,7 +148,8 @@ try:
     for contact in contacts:
         try:
             # Check if contact has a 'elevenLabsId' property
-            print(contact['elevenLabsId'])  
+            print(contact['voice_actor'])  
+        
         except KeyError:
             # Handle the case where the property is missing
             print("No associated voice ID found for the character",contact['name'])
@@ -161,52 +166,14 @@ with open(VOICE_LINES_FILE_PATH) as voice_lines_file:
 
 voice_lines = data['voiceLines']
 
-# Create a temporary folder to store each voice line object as a separate JSON file
-tmp_folder = 'voice_lines_output_tmp'
-os.makedirs(tmp_folder, exist_ok=True)
-
-# Write each voice line object to a separate JSON file
-# to make it easier to work with
-for index, item in enumerate(data["voiceLines"]):
-    
-    file_name = f"voice_line_{index + 1}.json"
-    file_path = os.path.join(tmp_folder, file_name)
-
-    with open(file_path, 'w') as file:
-        json.dump(item, file, indent=4)
-
-# Run function for each JSON file in the temporary folder
-for index, file_name in enumerate(os.listdir(tmp_folder)):
-    if file_name.endswith('.json'):
-        file_path = os.path.join(tmp_folder, file_name)
-        
-        # Open and read the JSON file
-        with open(file_path, 'r') as file:
-            try:
-                file_data = json.load(file)  
-                process_voice_line_file(
-                    file_data=file_data, 
-                    file_name=file_name,
-                    file_path=file_path,
-                    line_index=index
-                )  
-            except json.JSONDecodeError as err:
-                print(f"Error reading {file_name}: {err}")
-        
-# Delete the temporary folder after processing
-try:
-    # Remove all files in the directory
-    for file_name in os.listdir(tmp_folder):
-        file_path = os.path.join(tmp_folder, file_name)
-        os.remove(file_path) 
-
-    # Remove the directory itself
-    os.rmdir(tmp_folder)  # Remove the empty directory
-    
-except Exception as err:
-    print(f"Error deleting temporary folder: {err}")      
-
-
-
+if(len(voice_lines) == 0):
+    print("No voice lines found in voices_lines.json")
+else:
+    # Process each voice line
+    for index, voice_line in enumerate(voice_lines):
+        process_voice_line(
+            voice_line, 
+            voice_line_index=index
+        )
 
 print("App finished. Assets generated in " + OUTPUT_FOLDER)
