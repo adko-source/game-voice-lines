@@ -110,33 +110,36 @@ def process_voice_line(voice_line, voice_line_index):
 
     for speaker in valid_speakers:
         voice_actor_details = get_voice_actor_details(speaker)
-        voice_actor_id = voice_actor_details[0]
-        voice_actor_name = voice_actor_details[1]
-
-        if(voice_actor_id == None):
-            return
         
-        for line_index, line in enumerate(lines):
-            print(f"Processing line {line_index + 1} for {speaker}: {line}")
-            current_voice_line = str(voice_line_index + 1)
-            text = line
-            audio_file_name = f"{line_index}_{speaker}.mp3"
+        if(voice_actor_details == None):
+            continue
+        else:
+            voice_actor_id = voice_actor_details[0]
+            voice_actor_name = voice_actor_details[1]
+
+            if(voice_actor_id == None):
+                return
             
-            folder_name = f"{"New"}"
-            
-            call_text_to_speech_api(
-                voice_id=voice_actor_id,
-                text=text,
-                file_name=audio_file_name,
-                folder_name=folder_name
-            ) 
-            update_voice_lines_file(
-                generated_file_name=audio_file_name,
-                voice_actor_id=voice_actor_id,
-                voice_actor_name=voice_actor_name,
-                line=line,
-                voice_line_index=voice_line_index
-            )
+            for line_index, line in enumerate(lines):
+                print(f"Processing line {line_index + 1} for {speaker}: {line}")
+                text = line
+                audio_file_name = f"{line_index}_{speaker}.mp3"
+                
+                folder_name = f"{"New"}"
+                
+                call_text_to_speech_api(
+                    voice_id=voice_actor_id,
+                    text=text,
+                    file_name=audio_file_name,
+                    folder_name=folder_name
+                ) 
+                update_voice_lines_file(
+                    generated_file_name=audio_file_name,
+                    voice_actor_id=voice_actor_id,
+                    voice_actor_name=voice_actor_name,
+                    line=line,
+                    voice_line_index=voice_line_index
+                )
 
     print("Finished processing voice line " + current_voice_line)
 
