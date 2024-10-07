@@ -69,7 +69,7 @@ def call_text_to_speech_api(voice_id, text, file_name, folder_name):
 
 
 # Update voice_lines.json with the generated assets details
-def update_voice_lines_file(generated_file_name, voice_actor, line, voice_line_index): 
+def update_voice_lines_file(generated_file_name, voice_actor_id, voice_actor_name, line, voice_line_index): 
     with open(VOICE_LINES_FILE_PATH, 'r') as file:
         data = json.load(file)
 
@@ -83,7 +83,8 @@ def update_voice_lines_file(generated_file_name, voice_actor, line, voice_line_i
         generated_asset_info = {
             "line": line,
             "audio_file_name": generated_file_name,
-            "voice_actor": voice_actor
+            "voice_actor_id": voice_actor_id,
+            "voice_actor_name": voice_actor_name
         }
         # Add new properties to the file
         voice_line_object['generated_assets'].append(generated_asset_info)
@@ -108,57 +109,58 @@ def process_voice_line(voice_line, voice_line_index):
         return
 
     for speaker in valid_speakers:
-        voice_id = get_voice_id_from_name(speaker)
+        voice_actor_details = get_voice_actor_details(speaker)
+        voice_actor_id = voice_actor_details[0]
+        voice_actor_name = voice_actor_details[1]
+
+        if(voice_actor_id == None):
+            return
         
         for line_index, line in enumerate(lines):
-            print(f"Processing voice line {line_index + 1} for {speaker}: {line}")
+            print(f"Processing line {line_index + 1} for {speaker}: {line}")
             current_voice_line = str(voice_line_index + 1)
             text = line
-            audio_file_name = f"{line_index}_{voice_id}.mp3"
+            audio_file_name = f"{line_index}_{speaker}.mp3"
             
             folder_name = f"{"New"}"
             
             call_text_to_speech_api(
-                voice_id=voice_id,
+                voice_id=voice_actor_id,
                 text=text,
                 file_name=audio_file_name,
                 folder_name=folder_name
             ) 
             update_voice_lines_file(
                 generated_file_name=audio_file_name,
-                voice_actor=voice_id,
+                voice_actor_id=voice_actor_id,
+                voice_actor_name=voice_actor_name,
                 line=line,
                 voice_line_index=voice_line_index
             )
 
     print("Finished processing voice line " + current_voice_line)
 
-# TODO: Get the voice ID from the name
-def get_voice_id_from_name(name):
-    
-    return "CwhRBWXzGAHq8TQ4Fs17"
-
-# Check if each contact has an associated voice ID
-try:
+def get_voice_actor_details(speaker):
+    voice_actor_name = None
     with open(CONTACTS_FILE_PATH) as contacts_file:
         data = json.load(contacts_file)
 
     contacts = data['contacts']
 
     for contact in contacts:
-        try:
-            # Check if contact has a 'elevenLabsId' property
-            print(contact['voice_actor'])  
-        
-        except KeyError:
-            # Handle the case where the property is missing
-            print("No associated voice ID found for the character",contact['name'])
+        if contact['name'] == speaker:
+            voice_actor_name = contact['voice_actor']
 
-except FileNotFoundError:
-    print(f"Error: The file {CONTACTS_FILE_PATH} was not found.")
-except json.JSONDecodeError:
-    print("Error: Failed to decode JSON from the contacts file.")
+    if(voice_actor_name == None):
+        print("No associated voice ID found for the character", speaker)
+        return
 
+    with open('./voices.json') as voices_file:
+        available_voices = json.load(voices_file)
+
+    voice_actor_id = available_voices[voice_actor_name]
+
+    return [voice_actor_id, voice_actor_name]
 
 # Get data from voice_lines.json
 with open(VOICE_LINES_FILE_PATH) as voice_lines_file:
