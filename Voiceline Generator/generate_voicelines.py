@@ -7,15 +7,18 @@ print("App started")
 # Get Eleven Labs API key from config.json
 with open('../config.json') as config_file:
     config = json.load(config_file)
+    api_key = config['api_key']
 
-api_key = config['api_key']
+with open('../Game Files/Data/contacts.json') as contacts_file:
+        data = json.load(contacts_file)
+        contacts = data['contacts']
 
 # Define constants
-CONTACTS_FILE_PATH = "../Game Files/Data/contacts.json"
 VOICE_LINES_FILE_PATH = "../Game Files/Data/voice_lines.json"
 OUTPUT_FOLDER = "../Game Files/Assets/VoiceLines"
 CHUNK_SIZE = 1024  
 XI_API_KEY = api_key
+CONTACTS = contacts
 
 def create_audio_file(api_response, file_name, folder_name):
         # Create the directory to save the audio files in
@@ -28,8 +31,11 @@ def create_audio_file(api_response, file_name, folder_name):
             # Read the response in chunks and write to the mp3 audio file
             for chunk in api_response.iter_content(chunk_size=CHUNK_SIZE):
                 f.write(chunk)
+
+        print(f"Audio file created: {file_name}")
         
-print("Audio stream saved successfully.")
+        
+
 
 def call_text_to_speech_api(voice_id, text, file_name, folder_name):
 
@@ -93,21 +99,30 @@ def update_voice_lines_file(generated_file_name, voice_actor_id, voice_actor_nam
         with open(VOICE_LINES_FILE_PATH, 'w') as updated_file:
             json.dump(data, updated_file, indent=4)
 
+def get_all_contact_names():
+    all_speakers = []
+    for contact in CONTACTS:
+        all_speakers.append(contact['name'])
+    return all_speakers
+
+audio_file_prefix = 1
 def process_voice_line(voice_line, voice_line_index):
+    global audio_file_prefix 
     current_voice_line = str(voice_line_index + 1)
     print("Processing voice line " + current_voice_line)
     
     lines = voice_line.get('lines', [])
     valid_speakers = voice_line.get('valid_speakers', [])
     
+    # If no valid speakers are provided, use all contacts
     if (len(valid_speakers) == 0):
-        print("Voice line has no valid speakers")
-        return
-         
+        valid_speakers = get_all_contact_names()
+    
     if len(lines) == 0:
         print("No lines found")
         return
-
+    
+    
     for speaker in valid_speakers:
         voice_actor_details = get_voice_actor_details(speaker)
 
@@ -123,7 +138,8 @@ def process_voice_line(voice_line, voice_line_index):
             for line_index, line in enumerate(lines):
                 print(f"Processing line {line_index + 1} for {speaker}: {line}")
                 text = line
-                audio_file_name = f"{line_index}_{speaker}.mp3"
+                audio_file_name = f"{audio_file_prefix}_{speaker}.mp3"
+                audio_file_prefix += 1
                 
                 folder_name = f"{"New"}"
                 
@@ -146,13 +162,8 @@ def process_voice_line(voice_line, voice_line_index):
 def get_voice_actor_details(speaker):
     voice_actor_name = None
 
-    with open(CONTACTS_FILE_PATH) as contacts_file:
-        data = json.load(contacts_file)
-
-    contacts = data['contacts']
-
     # Get the actor name from contacts.json that matches the speaker
-    for contact in contacts:
+    for contact in CONTACTS:
         if contact['name'] == speaker:
             voice_actor_name = contact['voice_actor']
 
@@ -184,4 +195,4 @@ else:
             voice_line_index=index
         )
 
-print("App finished. Assets generated in " + OUTPUT_FOLDER)
+print("App finished")
