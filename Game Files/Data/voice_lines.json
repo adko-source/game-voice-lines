@@ -21,7 +21,7 @@
 			"mission_types": [],
 			"chapters": [],
 			"lines": ["You lost!", "Tough luck", "Not so groovy..."],
-			"valid_speakers": [],
+			"valid_speakers": ["Winston Tan"],
 			"required_contacts": [],
 			"required_enemies": [],
 			"required_missions_completed": [],

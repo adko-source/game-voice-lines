@@ -29,7 +29,7 @@ def create_audio_file(api_response, file_name, folder_name):
             for chunk in api_response.iter_content(chunk_size=CHUNK_SIZE):
                 f.write(chunk)
         
-        print("Audio stream saved successfully.")
+print("Audio stream saved successfully.")
 
 def call_text_to_speech_api(voice_id, text, file_name, folder_name):
 
@@ -110,7 +110,7 @@ def process_voice_line(voice_line, voice_line_index):
 
     for speaker in valid_speakers:
         voice_actor_details = get_voice_actor_details(speaker)
-        
+
         if(voice_actor_details == None):
             continue
         else:
@@ -145,19 +145,22 @@ def process_voice_line(voice_line, voice_line_index):
 
 def get_voice_actor_details(speaker):
     voice_actor_name = None
+
     with open(CONTACTS_FILE_PATH) as contacts_file:
         data = json.load(contacts_file)
 
     contacts = data['contacts']
 
+    # Get the actor name from contacts.json that matches the speaker
     for contact in contacts:
         if contact['name'] == speaker:
             voice_actor_name = contact['voice_actor']
 
     if(voice_actor_name == None):
-        print("No associated voice ID found for the character", speaker)
+        print(f"No associated voice ID found for the character {speaker} -- Skipping")
         return
 
+    # Get the actor ID from voices.json
     with open('./voices.json') as voices_file:
         available_voices = json.load(voices_file)
 
